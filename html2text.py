@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 """html2text: Turn HTML into equivalent Markdown-structured text."""
-__version__ = "3.200.3"
+__version__ = "3.200.4"
 __author__ = "Aaron Swartz (me@aaronsw.com)"
 __copyright__ = "(C) 2004-2008 Aaron Swartz. GNU GPL 3."
 __contributors__ = ["Martin 'Joey' Schulze", "Ricardo Reyes", "Kevin Jay North"]
 
+"""change list
+2013-11-07 qibo: fix a indent issue with <li><pre><code>
+"""
 # TODO:
 #   Support decoded entities with unifiable.
 
@@ -30,7 +33,7 @@ try: #Python3
     import urllib.request as urllib
 except:
     import urllib
-import optparse, re, sys, codecs, types
+import optparse, re, sys, codecs
 
 try: from textwrap import wrap
 except: pass
@@ -593,6 +596,7 @@ class HTML2Text(HTMLParser.HTMLParser):
             if not data and not force: return
 
             if self.startpre:
+                self.startpre = 0
                 #self.out(" :") #TODO: not output when already one there
                 if not data.startswith("\n"):  # <pre>stuff...
                     data = "\n" + data
@@ -603,15 +607,9 @@ class HTML2Text(HTMLParser.HTMLParser):
             if self.pre:
                 if not self.list:
                     bq += "    "
-                #else: list content is already partially indented
-                for i in xrange(len(self.list)):
-                    bq += "    "
+                else:   # list content is already partially indented
+                    bq += "    " * (len(self.list)+1)
                 data = data.replace("\n", "\n"+bq)
-
-            if self.startpre:
-                self.startpre = 0
-                if self.list:
-                    data = data.lstrip("\n") # use existing initial indentation
 
             if self.start:
                 self.space = 0
